@@ -3,6 +3,7 @@ BTCXFactory is self-custodial collateralization to mint stablecoin (BTCX) with 1
 Users register their smart contract wallet to wallet registry contract --> user's smart contract wallet locks collateral token whithin itself --> users call BTCXFactory mint function --> users receive stablecoin (BTCX) based on 1:100 ratio. To unlock, users call BTCXFactory burn function to send BTCX back to the vault --> users unlock their locked collateral.
 
 # The project structure --> !important
+```
 src
 |
 |__ Aggregators   
@@ -17,6 +18,7 @@ src
 |
 |__ BTCX.sol
 |__ BTCXFactory.sol
+```
 
 # BTCX.sol --> Help me decide whether it is a library, interface , abstract or ordinary contract.
 - It is a stablecoin token contract that only BTCXFactory.sol can mint and burn the token on behave user's smart contract wallet.
