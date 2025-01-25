@@ -5,19 +5,19 @@ Users register their smart contract wallet to wallet registry contract --> user'
 # The project structure --> !important
 ```
 src
-|
-|__ Aggregators   
-|   |__ CollateralManagerProxy.sol
-|   |__ CollateralManagerImplementation.sol
-|   |__ WalletRegistry.sol // uses extcodehash EVM opcode
-|
-|__ Interfaces
-|   |__ ICollateralManager.sol
-|   |__ IWalletRegistry.sol
-|   |__ IBTCX.sol
-|
-|__ BTCX.sol
-|__ BTCXFactory.sol
+│
+├─ Aggregators
+│  ├─ CollateralManagerProxy.sol
+│  ├─ CollateralManagerImplementation.sol
+│  └─ WalletRegistry.sol   // uses extcodehash
+│
+├─ Interfaces
+│  ├─ ICollateralManager.sol
+│  ├─ IWalletRegistry.sol
+│  └─ IBTCX.sol
+│
+├─ BTCX.sol
+└─ BTCXFactory.sol
 ```
 
 # BTCX.sol --> Help me decide whether it is a library, interface , abstract or ordinary contract.
