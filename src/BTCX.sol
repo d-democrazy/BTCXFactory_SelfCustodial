@@ -6,25 +6,28 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IBTCX} from "./Interfaces/IBTCX.sol";
 
 contract BTCX is ERC20, IBTCX {
-    ///////////////////////
-    ///     Errors      ///
-    ///////////////////////
-
+    /**
+     * --------------------------
+     * Errors
+     * --------------------------
+     */
     error BTCX_NotFactory(address caller);
     error BTCX_MintExceedsMaxSupply(uint256 requested, uint256 maxAllowed);
     error BTCX_BurnInsufficientAllowance(address from, address operator, uint256 allowance, uint256 burnAmount);
 
-    ///////////////////////////////
-    ///     State Variables     ///
-    ///////////////////////////////
-
+    /**
+     * --------------------------
+     * State Variables
+     * --------------------------
+     */
     uint256 public constant MAX_SUPPLY = 2_100_000_000 * 10 ** 18;
     address public factory;
 
-    ///////////////////////////
-    ///     Contructor      ///
-    ///////////////////////////
-
+    /**
+     * --------------------------
+     * Constructor
+     * --------------------------
+     */
     constructor(address _factory) ERC20("Bitcoin Extended", "BTCX") {
         if (_factory == address(0)) {
             revert BTCX_NotFactory(_factory);
@@ -32,10 +35,11 @@ contract BTCX is ERC20, IBTCX {
         factory = _factory;
     }
 
-    ///////////////////////////
-    ///     Modifier        ///
-    ///////////////////////////
-
+    /**
+     * --------------------------
+     * Modifier
+     * --------------------------
+     */
     modifier onlyFactory() {
         if (msg.sender != factory) {
             revert BTCX_NotFactory(msg.sender);
@@ -43,10 +47,11 @@ contract BTCX is ERC20, IBTCX {
         _;
     }
 
-    ///////////////////////////////////////
-    ///     External Mint Function      ///
-    ///////////////////////////////////////
-
+    /**
+     * ------------------------------
+     * External mint function
+     * ------------------------------
+     */
     function mint(address to, uint256 amount) external onlyFactory returns (bool) {
         uint256 newSupply = totalSupply() + amount;
         if (newSupply > MAX_SUPPLY) {
@@ -56,10 +61,11 @@ contract BTCX is ERC20, IBTCX {
         return true;
     }
 
-    ///////////////////////////////////////
-    ///     External burn function      ///
-    ///////////////////////////////////////
-
+    /**
+     * ------------------------------
+     * External burn function
+     * ------------------------------
+     */
     function burnFrom(address from, uint256 amount) external onlyFactory returns (bool) {
         // Check allowance
         uint256 currentAllowance = allowance(from, msg.sender);
