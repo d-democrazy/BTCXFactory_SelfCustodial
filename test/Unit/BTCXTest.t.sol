@@ -120,6 +120,20 @@ contract BTCXTest is Test {
 
     /**
      * ------------------------------
+     * Approval test
+     * ------------------------------
+     */
+    function testApproval() public {
+        vm.prank(user);
+
+        token.approve(factory, 1000 ether);
+        assertEq(token.allowance(user, factory), 1000 ether, "Allowance mismatch");
+
+        vm.stopPrank();
+    }
+
+    /**
+     * ------------------------------
      * Burn test
      * ------------------------------
      */
@@ -143,5 +157,22 @@ contract BTCXTest is Test {
         bool success = token.burnFrom(user, 500 ether);
         assertTrue(success);
         assertEq(token.balanceOf(user), 500 ether, "Balance is not decreased");
+    }
+
+    /**
+     * -------------------------
+     * Edge case test
+     * -------------------------
+     */
+    function testBurnMoreThanBalance() public {
+        vm.prank(user);
+        token.approve(factory, 2000 ether);
+
+        vm.startPrank(factory);
+
+        vm.expectRevert();
+        token.burnFrom(user, 1500 ether);
+
+        vm.stopPrank();
     }
 }
