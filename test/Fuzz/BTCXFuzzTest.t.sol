@@ -44,11 +44,19 @@ contract BTCXFuzzTest is Test {
             vm.stopPrank();
             return;
         }
+    }
 
-        // 2. If caller == factory => check supply limit
+    /**
+     * @dev Semi fuzz test to check `factory` behaviour.
+     * @param amount The random minted amonut.
+     */
+    // 2. If caller == factory => Check supply limit
+    function testFuzz_FactoryChecksSupplyLimit(uint256 amount) public {
+        uint256 currentSupply = token.totalSupply();
+        vm.assume(amount <= type(uint256).max - currentSupply);
+
         vm.startPrank(factory);
 
-        uint256 currentSupply = token.totalSupply();
         uint256 maxSupply = token.MAX_SUPPLY();
 
         if (currentSupply + amount > maxSupply) {
