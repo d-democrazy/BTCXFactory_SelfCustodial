@@ -74,8 +74,8 @@ contract BTCXFuzzTest is Test {
     }
 
     /**
-     * @dev Fuzz test fro `burnFrom` with random allowance & burn amounts.
-     * `factory` is the only valid caller.
+     * @dev Fuzz test for `burnFrom` with random allowance & burn amounts.
+     * @notice `factory` is the only valid caller.
      * @param allowanceAmount The user's approval to the factory.
      * @param burnAmount The factory tries to burn.
      */
