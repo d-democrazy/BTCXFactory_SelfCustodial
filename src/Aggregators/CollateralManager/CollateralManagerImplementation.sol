@@ -2,49 +2,51 @@
 
 pragma solidity ^0.8.18;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ICollateralManager} from "../../Interfaces/ICollateralManager.sol";
 
 error CollateralManager_InvalidCollateralAddress(address collateral);
 error CollateralManager_CollateralAlreadyAllowed(address collateral);
 error CollateralManager_CollateralNotAllowed(address collateral);
 
-contract CollateralManagerImplementation is ICollateralManager, Ownable {
-    constructor() Ownable(msg.sender) {}
-
+contract CollateralManagerImplementation is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     mapping(address => bool) private _allowedCollateral;
 
     event AllowedCollateralAdded(address indexed collateral);
     event AllowedCollateralRemoved(address indexed collateral);
 
+    function initialize() public initializer {
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+    }
+
     /**
      * @notice Adds an address to the allowed collateral list.
-     * @dev Only the contract onwer can call this function.
+     * @dev Only the owner can call this function.
      * @param collateral The address of the collateral token to add.
      */
     function addAllowedCollateral(address collateral) external onlyOwner {
         if (collateral == address(0)) {
             revert CollateralManager_InvalidCollateralAddress(collateral);
         }
-
         if (_allowedCollateral[collateral]) {
             revert CollateralManager_CollateralAlreadyAllowed(collateral);
         }
-
         _allowedCollateral[collateral] = true;
         emit AllowedCollateralAdded(collateral);
     }
 
     /**
      * @notice Removes an address from the allowed collateral list.
-     * @dev Only the contract owner can call this function.
+     * @dev Only the owner can call this function.
      * @param collateral The address of the collateral token to remove.
      */
     function removeAllowedCollateral(address collateral) external onlyOwner {
         if (!_allowedCollateral[collateral]) {
             revert CollateralManager_CollateralNotAllowed(collateral);
         }
-
         _allowedCollateral[collateral] = false;
         emit AllowedCollateralRemoved(collateral);
     }
@@ -57,4 +59,6 @@ contract CollateralManagerImplementation is ICollateralManager, Ownable {
     function isAllowedCollateral(address collateral) external view returns (bool) {
         return _allowedCollateral[collateral];
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
