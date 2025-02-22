@@ -3,9 +3,10 @@
 pragma solidity ^0.8.18;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IBTCX} from "./Interfaces/IBTCX.sol";
 
-contract BTCX is ERC20, IBTCX {
+contract BTCX is ERC20, IBTCX, Ownable {
     /**
      * --------------------------
      * Errors
@@ -22,13 +23,14 @@ contract BTCX is ERC20, IBTCX {
      */
     uint256 public constant MAX_SUPPLY = 2_100_000_000 * 10 ** 18;
     address public factory;
+    bool private transfersPaused;
 
     /**
      * --------------------------
      * Constructor
      * --------------------------
      */
-    constructor(address _factory) ERC20("Bitcoin Extended", "BTCX") {
+    constructor(address _factory) ERC20("Bitcoin Extended", "BTCX") Ownable(msg.sender) {
         if (_factory == address(0)) {
             revert BTCX_NotFactory(_factory);
         }
@@ -79,5 +81,21 @@ contract BTCX is ERC20, IBTCX {
         // Burn the tokens
         _burn(from, amount);
         return true;
+    }
+
+    /**
+     * --------------------------------
+     * Deactivate arbitrary transfers
+     * --------------------------------
+     */
+    function toggleTransfers() external onlyOwner {
+        transfersPaused = !transfersPaused;
+    }
+
+    function _update(address from, address to, uint256 value) internal override {
+        if (from != address(0) && to != address(0)) {
+            require(!transfersPaused, "Arbitrary transfers are deactivated.");
+        }
+        super._update(from, to, value);
     }
 }
