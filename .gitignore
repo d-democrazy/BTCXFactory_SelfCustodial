@@ -15,3 +15,6 @@ docs/
 
 # Libraries
 lib/
+
+# VSCode
+.vscode/

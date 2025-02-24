@@ -15,6 +15,7 @@ contract BTCX is ERC20, IBTCX, Ownable {
     error BTCX_NotFactory(address caller);
     error BTCX_MintExceedsMaxSupply(uint256 requested, uint256 maxAllowed);
     error BTCX_BurnInsufficientAllowance(address from, address operator, uint256 allowance, uint256 burnAmount);
+    error BTCX_TransfersPaused(address from, address to, string message);
 
     /**
      * --------------------------
@@ -94,7 +95,7 @@ contract BTCX is ERC20, IBTCX, Ownable {
 
     function _update(address from, address to, uint256 value) internal override {
         if (from != address(0) && to != address(0)) {
-            require(!transfersPaused, "Arbitrary transfers are deactivated.");
+            revert BTCX_TransfersPaused(msg.sender, to, "Arbitrary transfers are deactivated!");
         }
         super._update(from, to, value);
     }

@@ -10,7 +10,7 @@ interface ICollateralManager {
     function addAllowedCollateral(address collateral) external;
 
     /**
-     * @notice Removes an address from the allowes collateral list.
+     * @notice Removes an address from the allowed collateral list.
      * @param collateral The address of the collateral token to remove.
      */
     function removeAllowedCollateral(address collateral) external;
@@ -21,4 +21,8 @@ interface ICollateralManager {
      * @return True if the collateral is allowed, otherwise false.
      */
     function isAllowedCollateral(address collateral) external view returns (bool);
+
+    function getAllowedCollateral(uint256 index) external view returns (address);
+
+    function getAllowedCollateralCount() external view returns (uint256);
 }
