@@ -4,7 +4,7 @@
  * 1. Deploy collateral testenet adresses when on Core testnet.
  * 2. Deploy collateral mainnet addresses when on Core mainnet.
  */
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.22;
 
 import {CollateralManagerImplementation} from
     "../../src/Aggregators/CollateralManager/CollateralManagerImplementation.sol";

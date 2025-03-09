@@ -21,8 +21,10 @@ contract BTCXImplementation is
 {
     bytes32 public constant FACTORY_ROLE = keccak256("FACTORY_ROLE");
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
-
     uint256 public constant MAX_SUPPLY = 2100000000 ether;
+
+    error ExceedsMaxSupply(uint256 amount, uint256 maxSupply);
+    error NotAllowed(string message);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -51,7 +53,9 @@ contract BTCXImplementation is
     }
 
     function mint(address to, uint256 amount) public onlyRole(FACTORY_ROLE) {
-        require(totalSupply() + amount <= MAX_SUPPLY, "BTCX: Exceeds maximum supply");
+        if (totalSupply() + amount > MAX_SUPPLY) {
+            revert ExceedsMaxSupply(totalSupply() + amount, MAX_SUPPLY);
+        }
         _mint(to, amount);
     }
 
@@ -61,20 +65,20 @@ contract BTCXImplementation is
     }
 
     function burn(uint256 value) public override {
-        require(!paused(), "BTCX: direct burn not allowed");
+        if (paused()) {
+            revert NotAllowed("Direct burn not allowed!");
+        }
         super.burn(value);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(ADMIN_ROLE) {}
-
-    // The following functions are overrides required by Solidity.
 
     function _update(address from, address to, uint256 value)
         internal
         override(ERC20Upgradeable, ERC20PausableUpgradeable)
     {
         if (from != address(0) && to != address(0)) {
-            require(!paused(), "BTCX: Transfers are paused");
+            require(!paused(), "BTCX token can only be locked as collateral!");
         }
         ERC20Upgradeable._update(from, to, value);
     }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.22;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -24,6 +24,11 @@ contract CollateralManagerImplementation is Initializable, OwnableUpgradeable, U
 
     event AllowedCollateralAdded(address indexed collateral);
     event AllowedCollateralRemoved(address indexed collateral);
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize(address[] memory initialCollateral) public initializer {
         __Ownable_init(msg.sender);
