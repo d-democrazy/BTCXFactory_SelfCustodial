@@ -27,7 +27,7 @@ contract DeployCollateralManagerProxy is Script {
             DevOpsTools.get_most_recent_deployment("CollateralManagerImplementation", chainId);
         console.log("Using implementation at:", implementationAddress);
 
-        // Encode initialization data by passing allowedCollateras to initialize.
+        // Encode initialization data by passing allowedCollaterals to initialize.
         bytes memory initData = HelperConfig.encodeInitializeCall(block.chainid);
         console2.logBytes(initData);
 
