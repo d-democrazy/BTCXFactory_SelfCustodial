@@ -13,10 +13,8 @@ contract DeployBTCXProxy is Script {
     function run() external {
         vm.startBroadcast();
 
-        HelperConfig helperConfig = new HelperConfig();
-
         // Passing factory address to minter and burner while msg.sender as pauser and upgrader.
-        bytes memory initData = helperConfig.encodeInitializeCall(msg.sender);
+        bytes memory initData = HelperConfig.encodeInitializeCall(msg.sender);
         console.logBytes("initData");
 
         // Retrive the implementation address via DevOpsTools.

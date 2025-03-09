@@ -7,7 +7,7 @@ import {Vm} from "forge-std/Vm.sol";
 import "forge-std/Script.sol";
 import "forge-std/console2.sol";
 
-contract HelperConfig {
+library HelperConfig {
     Vm public constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     struct NetworkConfig {
