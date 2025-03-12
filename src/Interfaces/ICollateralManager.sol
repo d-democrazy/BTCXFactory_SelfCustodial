@@ -22,7 +22,15 @@ interface ICollateralManager {
      */
     function isAllowedCollateral(address collateral) external view returns (bool);
 
+    /**
+     * @notice Retrives allowed collateral.
+     * @param index Index number corresponding to collateral address.
+     * @return address The address of the collateral.
+     */
     function getAllowedCollateral(uint256 index) external view returns (address);
 
+    /**
+     * @notice Retrives total number of allowed collateral.
+     */
     function getAllowedCollateralCount() external view returns (uint256);
 }
