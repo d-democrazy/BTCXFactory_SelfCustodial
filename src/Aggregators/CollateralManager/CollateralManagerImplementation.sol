@@ -7,7 +7,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {CollateralManagerLibrary} from "./CollateralManagerLibrary.sol";
-import {ICollateralManager} from "../../Interfaces/ICollateralManager.sol";
+import {ICollateralManager} from "./ICollateralManager.sol";
 
 error CollateralManager_InvalidCollateralAddress(address collateral);
 error CollateralManager_CollateralAlreadyAllowed(address collateral);
@@ -25,7 +25,6 @@ contract CollateralManagerImplementation is Initializable, OwnableUpgradeable, U
     event AllowedCollateralAdded(address indexed collateral);
     event AllowedCollateralRemoved(address indexed collateral);
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
@@ -39,31 +38,16 @@ contract CollateralManagerImplementation is Initializable, OwnableUpgradeable, U
         }
     }
 
-    /**
-     * @notice Adds an address to the allowed collateral list.
-     * @dev Only the owner can call this function.
-     * @param collateral The address of the collateral token to add.
-     */
     function addAllowedCollateral(address collateral) external onlyOwner {
         CollateralManagerLibrary.addCollateral(_allowedCollateral, _allowedCollateralSet, collateral);
         emit AllowedCollateralAdded(collateral);
     }
 
-    /**
-     * @notice Removes an address from the allowed collateral list.
-     * @dev Only the owner can call this function.
-     * @param collateral The address of the collateral token to remove.
-     */
     function removeAllowedCollateral(address collateral) external onlyOwner {
         CollateralManagerLibrary.removeCollateral(_allowedCollateral, _allowedCollateralSet, collateral);
         emit AllowedCollateralRemoved(collateral);
     }
 
-    /**
-     * @notice Checks if a given collateral address is allowed.
-     * @param collateral The address to check.
-     * @return True if the collateral is allowed, otherwise false.
-     */
     function isAllowedCollateral(address collateral) external view returns (bool) {
         return _allowedCollateral[collateral];
     }

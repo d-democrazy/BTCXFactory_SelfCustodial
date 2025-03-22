@@ -10,6 +10,7 @@ import {ERC20PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IBTCX} from "./IBTCX.sol";
 
 contract BTCXImplementation is
     Initializable,
@@ -17,16 +18,16 @@ contract BTCXImplementation is
     ERC20BurnableUpgradeable,
     ERC20PausableUpgradeable,
     AccessControlUpgradeable,
-    UUPSUpgradeable
+    UUPSUpgradeable,
+    IBTCX
 {
     bytes32 public constant FACTORY_ROLE = keccak256("FACTORY_ROLE");
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     uint256 public constant MAX_SUPPLY = 2100000000 ether;
 
     error ExceedsMaxSupply(uint256 amount, uint256 maxSupply);
-    error NotAllowed(string message);
+    error NotAllowed(uint256 value, string message);
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
@@ -59,16 +60,21 @@ contract BTCXImplementation is
         _mint(to, amount);
     }
 
-    function burnFrom(address account, uint256 value) public override onlyRole(FACTORY_ROLE) {
+    function burnFrom(address account, uint256 value)
+        public
+        override(ERC20BurnableUpgradeable, IBTCX)
+        onlyRole(FACTORY_ROLE)
+    {
         _spendAllowance(account, _msgSender(), value);
         _burn(account, value);
     }
 
-    function burn(uint256 value) public override {
-        if (paused()) {
-            revert NotAllowed("Direct burn not allowed!");
-        }
-        super.burn(value);
+    function burn(uint256 value) public pure override {
+        revert NotAllowed(value, "Direct burn not allowed!");
+    }
+
+    function balanceOf(address account) public view override(ERC20Upgradeable, IBTCX) returns (uint256) {
+        return ERC20Upgradeable.balanceOf(account);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(ADMIN_ROLE) {}
