@@ -6,7 +6,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {CollateralManagerLibrary} from "./CollateralManagerLibrary.sol";
+import {CollateralOperator} from "./CollateralOperator.sol";
 import {ICollateralManager} from "./ICollateralManager.sol";
 
 error CollateralManager_InvalidCollateralAddress(address collateral);
@@ -15,8 +15,8 @@ error CollateralManager_CollateralNotAllowed(address collateral);
 
 contract CollateralManagerImplementation is Initializable, OwnableUpgradeable, UUPSUpgradeable, ICollateralManager {
     using EnumerableSet for EnumerableSet.AddressSet;
-    using CollateralManagerLibrary for mapping(address => bool);
-    using CollateralManagerLibrary for EnumerableSet.AddressSet;
+    using CollateralOperator for mapping(address => bool);
+    using CollateralOperator for EnumerableSet.AddressSet;
 
     // Storage: allowed collateral set and mapping
     EnumerableSet.AddressSet private _allowedCollateralSet;
@@ -33,18 +33,18 @@ contract CollateralManagerImplementation is Initializable, OwnableUpgradeable, U
         __Ownable_init(msg.sender);
         __UUPSUpgradeable_init();
         for (uint256 i = 0; i < initialCollateral.length; i++) {
-            CollateralManagerLibrary.addCollateral(_allowedCollateral, _allowedCollateralSet, initialCollateral[i]);
+            CollateralOperator.addCollateral(_allowedCollateral, _allowedCollateralSet, initialCollateral[i]);
             emit AllowedCollateralAdded(initialCollateral[i]);
         }
     }
 
     function addAllowedCollateral(address collateral) external onlyOwner {
-        CollateralManagerLibrary.addCollateral(_allowedCollateral, _allowedCollateralSet, collateral);
+        CollateralOperator.addCollateral(_allowedCollateral, _allowedCollateralSet, collateral);
         emit AllowedCollateralAdded(collateral);
     }
 
     function removeAllowedCollateral(address collateral) external onlyOwner {
-        CollateralManagerLibrary.removeCollateral(_allowedCollateral, _allowedCollateralSet, collateral);
+        CollateralOperator.removeCollateral(_allowedCollateral, _allowedCollateralSet, collateral);
         emit AllowedCollateralRemoved(collateral);
     }
 

@@ -9,8 +9,11 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IWalletRegistry} from "./IWalletRegistry.sol";
 import {ICollateralManager} from "../CollateralManager/ICollateralManager.sol";
 import {IFactory} from "../../Factory/IFactory.sol";
+import {CodeHashOperator} from "./CodeHashOperator.sol";
 
 contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable, UUPSUpgradeable, IWalletRegistry {
+    using CodeHashOperator for bytes32[];
+
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant FACTORY_ROLE = keccak256("FACTORY_ROLE");
@@ -28,7 +31,7 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
     }
 
     mapping(address => WalletState) private walletState;
-    bytes32 public expectedWalletCodeHash;
+    bytes32[] public expectedWalletCodeHashes;
     address CollateralManagerProxyAddress;
     address BTCXFactoryProxyAddress;
     address BTCXProxyAddress;
@@ -39,7 +42,7 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
         address updater,
         address verifiedWallet,
         address admin,
-        bytes32 _expectedWalletCodeHash
+        bytes32[] memory _expectedWalletCodeHashes
     ) public initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
@@ -48,7 +51,23 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
         _grantRole(UPGRADER_ROLE, upgrader);
         _grantRole(FACTORY_ROLE, updater);
         _grantRole(VERIFIED_WALLET_ROLE, verifiedWallet);
-        expectedWalletCodeHash = _expectedWalletCodeHash;
+        expectedWalletCodeHashes = _expectedWalletCodeHashes;
+    }
+
+    function addExpectedWalletCodeHash(bytes32 newHash) external onlyRole(ADMIN_ROLE) {
+        expectedWalletCodeHashes.addExpectedWalletCodeHash(newHash);
+    }
+
+    function removeExpectedWalletCodeHash(uint256 index) external onlyRole(ADMIN_ROLE) {
+        expectedWalletCodeHashes.removeExpectedWalletCodeHash(index);
+    }
+
+    function getExpectedWalletCodeHash(uint256 index) external view returns (bytes32) {
+        return expectedWalletCodeHashes.getExpectedWalletCodeHash(index);
+    }
+
+    function getExpectedWalletCodeHashes() external view returns (bytes32[] memory) {
+        return expectedWalletCodeHashes.getExpectedWalletCodeHashes();
     }
 
     function verifyWallet(address wallet) external view returns (bool valid) {
@@ -57,7 +76,12 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
 
     function _verifyWallet(address wallet) internal view returns (bool valid) {
         bytes32 walletCodeHash = wallet.codehash;
-        valid = (walletCodeHash == expectedWalletCodeHash);
+        for (uint256 i = 0; i < expectedWalletCodeHashes.length; i++) {
+            if (walletCodeHash == expectedWalletCodeHashes[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function updateWalletState(address wallet, bool locked, uint256 BTCXBalance)
@@ -82,7 +106,7 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
         onlyRole(VERIFIED_WALLET_ROLE)
     {
         if (!_verifyWallet(wallet)) {
-            revert NotVerified(wallet, expectedWalletCodeHash, "Wallet not verified");
+            revert NotVerified(wallet, expectedWalletCodeHashes[0], "Wallet not verified");
         }
 
         if (msg.sender != wallet) {

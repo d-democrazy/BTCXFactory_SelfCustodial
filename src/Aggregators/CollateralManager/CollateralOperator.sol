@@ -8,7 +8,7 @@ error CollateralManager_InvalidCollateralAddress(address collateral);
 error CollateralManager_CollateralAlreadyAllowed(address collateral);
 error CollateralManager_CollateralNotAllowed(address collateral);
 
-library CollateralManagerLibrary {
+library CollateralOperator {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     /**
