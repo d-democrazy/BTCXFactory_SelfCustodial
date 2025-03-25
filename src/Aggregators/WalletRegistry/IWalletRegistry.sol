@@ -4,6 +4,35 @@ pragma solidity ^0.8.22;
 
 interface IWalletRegistry {
     /**
+     * @notice Revert when wallet's codahash isn't valid.
+     * @param wallet The wallet address.
+     * @param expectedWalletCodeHash The expected wallet codehash.
+     * @param message The error message.
+     */
+    error NotVerified(address wallet, bytes32 expectedWalletCodeHash, string message);
+
+    /**
+     * @notice Revert if not wallet owner.
+     * @param wallet The wallet address.
+     * @param message The error message.
+     */
+    error NotOwner(address wallet, string message);
+
+    /**
+     * @notice Revert if lock wrong collateral.
+     * @param collateral The array of allowed collateral.
+     * @param message The error message.
+     */
+    error IllegalLock(address[] collateral, string message);
+
+    /**
+     * @notice Revert if lock zero collateral amount.
+     * @param amount The amount of collateral to lock.
+     * @param message The error message.
+     */
+    error IllegalCollateralAmount(uint256 amount, string message);
+
+    /**
      * @notice Emitted when a wallet's overall state (locked status and BTCX balance) is updated.
      */
     event WalletStateUpdated(address indexed wallet, bool locked, uint256 BTCXBalance);

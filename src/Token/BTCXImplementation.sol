@@ -10,7 +10,6 @@ import {ERC20PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IBTCX} from "./IBTCX.sol";
 
 contract BTCXImplementation is
     Initializable,
@@ -18,8 +17,7 @@ contract BTCXImplementation is
     ERC20BurnableUpgradeable,
     ERC20PausableUpgradeable,
     AccessControlUpgradeable,
-    UUPSUpgradeable,
-    IBTCX
+    UUPSUpgradeable
 {
     bytes32 public constant FACTORY_ROLE = keccak256("FACTORY_ROLE");
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -62,7 +60,7 @@ contract BTCXImplementation is
 
     function burnFrom(address account, uint256 value)
         public
-        override(ERC20BurnableUpgradeable, IBTCX)
+        override(ERC20BurnableUpgradeable)
         onlyRole(FACTORY_ROLE)
     {
         _spendAllowance(account, _msgSender(), value);
@@ -73,7 +71,7 @@ contract BTCXImplementation is
         revert NotAllowed(value, "Direct burn not allowed!");
     }
 
-    function balanceOf(address account) public view override(ERC20Upgradeable, IBTCX) returns (uint256) {
+    function balanceOf(address account) public view override(ERC20Upgradeable) returns (uint256) {
         return ERC20Upgradeable.balanceOf(account);
     }
 

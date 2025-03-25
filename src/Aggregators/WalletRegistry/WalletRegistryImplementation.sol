@@ -5,12 +5,13 @@ pragma solidity ^0.8.22;
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IWalletRegistry} from "./IWalletRegistry.sol";
 import {ICollateralManager} from "../CollateralManager/ICollateralManager.sol";
-import {IBTCX} from "../../Token/IBTCX.sol";
 import {IFactory} from "../../Factory/IFactory.sol";
 
-contract WalletRegistry is Initializable, AccessControlUpgradeable, UUPSUpgradeable, IWalletRegistry {
+contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable, UUPSUpgradeable, IWalletRegistry {
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant FACTORY_ROLE = keccak256("FACTORY_ROLE");
     bytes32 public constant VERIFIED_WALLET_ROLE = keccak256("VERIFIED_WALLET_ROLE");
@@ -34,16 +35,16 @@ contract WalletRegistry is Initializable, AccessControlUpgradeable, UUPSUpgradea
     address FactoryProxyAddress;
 
     function initialize(
-        address defaultAdmin,
         address upgrader,
         address updater,
         address verifiedWallet,
+        address admin,
         bytes32 _expectedWalletCodeHash
     ) public initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
+        _grantRole(ADMIN_ROLE, admin);
         _grantRole(UPGRADER_ROLE, upgrader);
         _grantRole(FACTORY_ROLE, updater);
         _grantRole(VERIFIED_WALLET_ROLE, verifiedWallet);
@@ -80,12 +81,26 @@ contract WalletRegistry is Initializable, AccessControlUpgradeable, UUPSUpgradea
         override
         onlyRole(VERIFIED_WALLET_ROLE)
     {
-        require(_verifyWallet(wallet), "Wallet not verified");
-        require(msg.sender == wallet, "Not wallet owner");
-        require(
-            ICollateralManager(CollateralManagerProxyAddress).isAllowedCollateral(collateral), "Collateral not allowed"
-        );
-        require(amount > 0, "Amount must be greater than 0");
+        if (!_verifyWallet(wallet)) {
+            revert NotVerified(wallet, expectedWalletCodeHash, "Wallet not verified");
+        }
+
+        if (msg.sender != wallet) {
+            revert NotOwner(wallet, "Not wallet owner");
+        }
+
+        if (!ICollateralManager(CollateralManagerProxyAddress).isAllowedCollateral(collateral)) {
+            uint256 count = ICollateralManager(CollateralManagerProxyAddress).getAllowedCollateralCount();
+            address[] memory allowedCollaterals = new address[](count);
+            for (uint256 i = 0; i < count; i++) {
+                allowedCollaterals[i] = ICollateralManager(CollateralManagerProxyAddress).getAllowedCollateral(i);
+            }
+            revert IllegalLock(allowedCollaterals, "Collateral not allowed");
+        }
+
+        if (amount <= 0) {
+            revert IllegalCollateralAmount(amount, "Amount must be greater than 0");
+        }
 
         WalletState storage state = walletState[wallet];
         uint256 currentLocked = state.collateralAmounts[collateral];
@@ -106,7 +121,7 @@ contract WalletRegistry is Initializable, AccessControlUpgradeable, UUPSUpgradea
         state.collateralAmounts[collateral] = currentLocked + amount;
         newLockState = true;
 
-        _updateWalletState(wallet, newLockState, IBTCX(BTCXProxyAddress).balanceOf(wallet));
+        _updateWalletState(wallet, newLockState, IERC20(BTCXProxyAddress).balanceOf(wallet));
 
         emit CollateralLocked(wallet, collateral, amount, newLockState);
     }
@@ -128,7 +143,6 @@ contract WalletRegistry is Initializable, AccessControlUpgradeable, UUPSUpgradea
         BTCXBalance = state.BTCXBalance;
         collateralTokens = state.collateralTokens;
         collateralAmounts = new uint256[](collateralTokens.length);
-
         for (uint256 i = 0; i < collateralTokens.length; i++) {
             collateralAmounts[i] = state.collateralAmounts[collateralTokens[i]];
         }
