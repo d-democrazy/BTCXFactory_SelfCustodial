@@ -33,9 +33,7 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
     mapping(address => WalletState) private walletState;
     bytes32[] public expectedWalletCodeHashes;
     address CollateralManagerProxyAddress;
-    address BTCXFactoryProxyAddress;
     address BTCXProxyAddress;
-    address FactoryProxyAddress;
 
     function initialize(
         address upgrader,
