@@ -7,5 +7,6 @@ import "forge-std/console2.sol";
 import {WalletRegistryProxy} from "../../src/Aggregators/WalletRegistry/WalletRegistryProxy.sol";
 import {WalletRegistryImplementation} from "../../src/Aggregators/WalletRegistry/WalletRegistryImplementation.sol";
 import {DevOpsTools} from "../../lib/foundry-devops/src/DevOpsTools.sol";
+import {HelperConfig} from "./HelperConfig.s.sol";
 
 contract DeployWalletRegistryProxy is Script {}

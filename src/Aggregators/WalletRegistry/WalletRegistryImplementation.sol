@@ -8,11 +8,18 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IWalletRegistry} from "./IWalletRegistry.sol";
 import {ICollateralManager} from "../CollateralManager/ICollateralManager.sol";
-import {IFactory} from "../../Factory/IFactory.sol";
 import {CodeHashOperator} from "./CodeHashOperator.sol";
 
 contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable, UUPSUpgradeable, IWalletRegistry {
     using CodeHashOperator for bytes32[];
+
+    /*
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    ///                                 ROLES
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    */
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
@@ -22,6 +29,14 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
     constructor() {
         _disableInitializers();
     }
+
+    /*
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    ///                             STATE VARIABLES
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    */
 
     struct WalletState {
         bool locked;
@@ -35,12 +50,22 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
     address CollateralManagerProxyAddress;
     address BTCXProxyAddress;
 
+    /*
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    ///                             INITIALIZER
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    */
+
     function initialize(
         address upgrader,
         address updater,
         address verifiedWallet,
         address admin,
-        bytes32[] memory _expectedWalletCodeHashes
+        bytes32[] memory _expectedWalletCodeHashes,
+        address _collateralManagerProxyAddress,
+        address _BTCXProxyAddress
     ) public initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
@@ -50,7 +75,33 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
         _grantRole(FACTORY_ROLE, updater);
         _grantRole(VERIFIED_WALLET_ROLE, verifiedWallet);
         expectedWalletCodeHashes = _expectedWalletCodeHashes;
+        CollateralManagerProxyAddress = _collateralManagerProxyAddress;
+        BTCXProxyAddress = _BTCXProxyAddress;
     }
+
+    /*
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    ///         Token address and `CollateralManager` address setter funcs
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    */
+
+    function setCollateralManagerProxyAddress(address _addr) external onlyRole(ADMIN_ROLE) {
+        CollateralManagerProxyAddress = _addr;
+    }
+
+    function setBTCXProxyAddress(address _addr) external onlyRole(ADMIN_ROLE) {
+        BTCXProxyAddress = _addr;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    ///                 Wallet codehash setter and getter funcs
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    */
 
     function addExpectedWalletCodeHash(bytes32 newHash) external onlyRole(ADMIN_ROLE) {
         expectedWalletCodeHashes.addExpectedWalletCodeHash(newHash);
@@ -68,6 +119,14 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
         return expectedWalletCodeHashes.getExpectedWalletCodeHashes();
     }
 
+    /*
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    ///                     Wallet codehash verifier funcs
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    */
+
     function verifyWallet(address wallet) external view returns (bool valid) {
         return _verifyWallet(wallet);
     }
@@ -81,6 +140,14 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
         }
         return false;
     }
+
+    /*
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    ///                         Wallet state updater funcs
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    */
 
     function updateWalletState(address wallet, bool locked, uint256 BTCXBalance)
         external
@@ -128,7 +195,8 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
         uint256 currentLocked = state.collateralAmounts[collateral];
         bool newLockState;
 
-        // Add the collateral token to the array if it doesn't already exist.
+        // Lock operation: Add the collateral token to the array if it doesn't already exist.
+
         bool exist = false;
         for (uint256 i = 0; i < state.collateralTokens.length; i++) {
             if (state.collateralTokens[i] == collateral) {
@@ -139,7 +207,9 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
         if (!exist) {
             state.collateralTokens.push(collateral);
         }
-        // Lock operation: add new amount to existing locked amount.
+
+        // Lock operation: Add new amount to existing locked amount.
+
         state.collateralAmounts[collateral] = currentLocked + amount;
         newLockState = true;
 
@@ -147,6 +217,14 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
 
         emit CollateralLocked(wallet, collateral, amount, newLockState);
     }
+
+    /*
+    ///////////////////////////////////////////////////////////////////////////
+    ///
+    ///                         Wallet state getter func
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    */
 
     function getWalletState(address wallet)
         external
@@ -169,6 +247,10 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
             collateralAmounts[i] = state.collateralAmounts[collateralTokens[i]];
         }
     }
+
+    /*
+    ///////////////////////////////////////////////////////////////////////////
+    */
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 }
