@@ -9,10 +9,6 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {CollateralOperator} from "./CollateralOperator.sol";
 import {ICollateralManager} from "./ICollateralManager.sol";
 
-error CollateralManager_InvalidCollateralAddress(address collateral);
-error CollateralManager_CollateralAlreadyAllowed(address collateral);
-error CollateralManager_CollateralNotAllowed(address collateral);
-
 contract CollateralManagerImplementation is Initializable, OwnableUpgradeable, UUPSUpgradeable, ICollateralManager {
     using EnumerableSet for EnumerableSet.AddressSet;
     using CollateralOperator for mapping(address => bool);

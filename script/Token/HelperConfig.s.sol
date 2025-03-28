@@ -34,7 +34,7 @@ library HelperConfig {
         return NetworkConfig({minter: getAddress("Factory"), burner: getAddress("Factory")});
     }
 
-    function getFactoryAddressConfig() public view returns (NetworkConfig memory) {
+    function setChainIdConfig() public view returns (NetworkConfig memory) {
         uint256 coreTestnet2ChainId = vm.envUint("CORE_TESTNET2_CHAINID");
         uint256 coreTestnetChainId = vm.envUint("CORE_TESTNET_CHAINID");
         uint256 coreMainnetChainId = vm.envUint("CORE_MAINNET_CHAINID");
@@ -51,7 +51,7 @@ library HelperConfig {
     }
 
     function encodeInitializeCall(address admin) external view returns (bytes memory) {
-        NetworkConfig memory config = getFactoryAddressConfig();
+        NetworkConfig memory config = setChainIdConfig();
         return
             abi.encodeWithSelector(BTCXImplementation.initialize.selector, admin, config.minter, config.burner, admin);
     }
