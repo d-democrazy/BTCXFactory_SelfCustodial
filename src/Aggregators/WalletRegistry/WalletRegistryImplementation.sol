@@ -15,9 +15,9 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
 
     /*
     ///////////////////////////////////////////////////////////////////////////
-    ///
-    ///                                 ROLES
-    ///
+    ///                                                                     ///
+    ///                                 ROLES                               ///
+    ///                                                                     ///
     ///////////////////////////////////////////////////////////////////////////
     */
 
@@ -32,9 +32,9 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
 
     /*
     ///////////////////////////////////////////////////////////////////////////
-    ///
-    ///                             STATE VARIABLES
-    ///
+    ///                                                                     ///
+    ///                             STATE VARIABLES                         ///
+    ///                                                                     ///
     ///////////////////////////////////////////////////////////////////////////
     */
 
@@ -52,9 +52,9 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
 
     /*
     ///////////////////////////////////////////////////////////////////////////
-    ///
-    ///                             INITIALIZER
-    ///
+    ///                                                                     ///
+    ///                             INITIALIZER                             ///
+    ///                                                                     ///
     ///////////////////////////////////////////////////////////////////////////
     */
 
@@ -74,6 +74,12 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
         _grantRole(UPGRADER_ROLE, upgrader);
         _grantRole(FACTORY_ROLE, updater);
         _grantRole(VERIFIED_WALLET_ROLE, verifiedWallet);
+
+        _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(UPGRADER_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(FACTORY_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(VERIFIED_WALLET_ROLE, FACTORY_ROLE);
+
         expectedWalletCodeHashes = _expectedWalletCodeHashes;
         CollateralManagerProxyAddress = _collateralManagerProxyAddress;
         BTCXProxyAddress = _BTCXProxyAddress;
@@ -81,9 +87,9 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
 
     /*
     ///////////////////////////////////////////////////////////////////////////
-    ///
-    ///         Token address and `CollateralManager` address setter funcs
-    ///
+    ///                                                                     ///
+    ///     Token address and `CollateralManager` address setter funcs      ///
+    ///                                                                     ///
     ///////////////////////////////////////////////////////////////////////////
     */
 
@@ -97,9 +103,9 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
 
     /*
     ///////////////////////////////////////////////////////////////////////////
-    ///
-    ///                 Wallet codehash setter and getter funcs
-    ///
+    ///                                                                     ///
+    ///                Wallet codehash setter and getter funcs              ///
+    ///                                                                     ///
     ///////////////////////////////////////////////////////////////////////////
     */
 
@@ -121,31 +127,41 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
 
     /*
     ///////////////////////////////////////////////////////////////////////////
-    ///
-    ///                     Wallet codehash verifier funcs
-    ///
+    ///                                                                     ///
+    ///                     Wallet codehash verifier funcs                  ///
+    ///                                                                     ///
     ///////////////////////////////////////////////////////////////////////////
     */
 
-    function verifyWallet(address wallet) external view returns (bool valid) {
+    function verifyWallet(address wallet) external returns (bool valid) {
         return _verifyWallet(wallet);
     }
 
-    function _verifyWallet(address wallet) internal view returns (bool valid) {
+    function _verifyWallet(address wallet) internal returns (bool valid) {
         bytes32 walletCodeHash = wallet.codehash;
+        bool isValid = false;
         for (uint256 i = 0; i < expectedWalletCodeHashes.length; i++) {
             if (walletCodeHash == expectedWalletCodeHashes[i]) {
-                return true;
+                isValid = true;
+                break;
             }
         }
-        return false;
+
+        if (!isValid) {
+            revert NotVerified(wallet, expectedWalletCodeHashes[0], "Wallet noy verified");
+        }
+
+        if (!hasRole(VERIFIED_WALLET_ROLE, wallet)) {
+            _grantRole(VERIFIED_WALLET_ROLE, wallet);
+        }
+        return true;
     }
 
     /*
     ///////////////////////////////////////////////////////////////////////////
-    ///
-    ///                         Wallet state updater funcs
-    ///
+    ///                                                                     ///
+    ///                         Wallet state updater funcs                  ///
+    ///                                                                     ///
     ///////////////////////////////////////////////////////////////////////////
     */
 
@@ -220,9 +236,9 @@ contract WalletRegistryImplementation is Initializable, AccessControlUpgradeable
 
     /*
     ///////////////////////////////////////////////////////////////////////////
-    ///
-    ///                         Wallet state getter func
-    ///
+    ///                                                                     ///
+    ///                         Wallet state getter func                    ///
+    ///                                                                     ///
     ///////////////////////////////////////////////////////////////////////////
     */
 

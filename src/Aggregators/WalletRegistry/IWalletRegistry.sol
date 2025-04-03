@@ -89,5 +89,5 @@ interface IWalletRegistry {
      * @param wallet The address of the wallet to verify.
      * @return valid True if the wallet is verified.
      */
-    function verifyWallet(address wallet) external view returns (bool valid);
+    function verifyWallet(address wallet) external returns (bool valid);
 }
